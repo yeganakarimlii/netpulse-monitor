@@ -1,0 +1,36 @@
+name: netpulse-monitor
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: netpulse-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 4000
+      JWT_SECRET: ${JWT_SECRET:-change_this_secret_in_production}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMe123!}
+      DB_PATH: /app/data/netpulse.db
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TZ: ${TZ:-Asia/Baku}
+      TIMEZONE_OFFSET_MINUTES: ${TIMEZONE_OFFSET_MINUTES:-240}
+    volumes:
+      - netpulse_data:/app/data
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: netpulse-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${WEB_PORT:-8080}:80"
+volumes:
+  netpulse_data:

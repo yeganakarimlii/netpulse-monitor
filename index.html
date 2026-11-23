@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="az" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetPulse Monitor — Infrastructure &amp; Port Watch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root[data-theme="dark"] {
+      --bg-base: #070b14;
+      --bg-elevated: rgba(15, 23, 42, 0.72);
+      --bg-card: rgba(17, 26, 46, 0.85);
+      --bg-input: rgba(10, 16, 30, 0.85);
+      --border: rgba(148, 163, 184, 0.16);
+      --border-strong: rgba(56, 189, 248, 0.35);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.14);
+      --danger: #f43f5e;
+      --danger-bg: rgba(244, 63, 94, 0.14);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.14);
+      --glow: 0 20px 50px rgba(2, 6, 23, 0.65);
+    }
+
+    :root[data-theme="light"] {
+      --bg-base: #f1f5f9;
+      --bg-elevated: rgba(255, 255, 255, 0.85);
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --bg-input: #f8fafc;
+      --border: rgba(15, 23, 42, 0.1);
+      --border-strong: rgba(2, 132, 199, 0.35);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent: #0284c7;
+      --accent-2: #4f46e5;
+      --success: #059669;
+      --success-bg: rgba(5, 150, 105, 0.12);
+      --danger: #e11d48;
+      --danger-bg: rgba(225, 29, 72, 0.12);
+      --warning: #d97706;
+      --warning-bg: rgba(217, 119, 6, 0.12);
+      --glow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-base);
+      background-image:
+        radial-gradient(circle at 12% 15%, rgba(56, 189, 248, 0.12), transparent 36%),
+        radial-gradient(circle at 88% 8%, rgba(129, 140, 248, 0.12), transparent 38%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-card);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: var(--glow);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 18px;
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.28);
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border: none;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-primary:hover { filter: brightness(1.06); }
+    .btn-sm { padding: 6px 11px; font-size: 12px; border-radius: 8px; }
+    .btn-danger { background: var(--danger-bg); color: var(--danger); border-color: rgba(244, 63, 94, 0.3); }
+    .w-full { width: 100%; }
+    .app-shell { display: none; min-height: 100vh; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(16px);
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .topbar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .topbar-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.28);
+    }
+
+    .topbar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .container { max-width: 1320px; margin: 0 auto; padding: 28px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--glow);
+    }
+
+    .stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat-value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .toolbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; }
+    .search-box { max-width: 280px; }
+    .filter-select { max-width: 170px; }
+
+    .panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--glow);
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+
+    th {
+      padding: 13px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.25);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(56, 189, 248, 0.04); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .pill-online { background: var(--success-bg); color: var(--success); }
+    .pill-offline { background: var(--danger-bg); color: var(--danger); }
+    .pill-unknown { background: var(--warning-bg); color: var(--warning); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+    .type-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      background: var(--bg-input);
+    }
+
+    .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: 100%;
+      max-width: 520px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--glow);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .log-item {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      z-index: 90;
+      padding: 12px 18px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--glow);
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+    }
+
+    .toast.show { display: block; }
+    .error-text { color: var(--danger); font-size: 13px; margin-top: 8px; }
+
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .container { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loginView" class="login-wrap">
+    <div class="login-card">
+      <div class="brand-row">
+        <div class="brand-badge">NP</div>
+        <div>
+          <h1 style="font-size:20px;font-weight:700;">NetPulse Monitor</h1>
+          <div style="font-size:12px;color:var(--text-secondary);">Infrastructure, Port &amp; SSL Telemetry</div>
+        </div>
+      </div>
+      <p class="subtitle">Sistemə daxil olmaq üçün administrator məlumatlarını daxil et.</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginUsername">İstifadəçi adı</label>
+          <input id="loginUsername" type="text" required autocomplete="username" placeholder="admin" />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Şifrə</label>
+          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••" />
+        </div>
+        <button type="submit" class="btn btn-primary w-full">Daxil ol</button>
+        <div id="loginError" class="error-text"></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="appView" class="app-shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand-badge" style="width:34px;height:34px;font-size:14px;">NP</div>
+        <span class="topbar-title">NetPulse Monitor</span>
+        <span class="topbar-tag"><span class="dot" style="display:inline-block;margin-right:5px;"></span>LIVE</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-sm" onclick="checkAllDevices()">Hamısını yoxla</button>
+        <button class="btn btn-sm" onclick="exportXlsx()">XLSX Export</button>
+        <button class="btn btn-sm" onclick="document.getElementById('xlsxFileInput').click()">XLSX Import</button>
+        <input id="xlsxFileInput" type="file" accept=".xlsx" style="display:none;" onchange="importXlsx(event)" />
+        <button class="btn btn-sm" onclick="openPasswordModal()">Şifrəni dəyiş</button>
+        <button class="btn btn-sm" onclick="toggleTheme()">Tema</button>
+        <button class="btn btn-sm btn-danger" onclick="logout()">Çıxış</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Ümumi Hədəf</div>
+          <div id="statTotal" class="stat-value mono">0</div>
+          <div class="stat-sub">İzlənən cihaz və servislər</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Online</div>
+          <div id="statOnline" class="stat-value mono" style="color:var(--success);">0</div>
+          <div class="stat-sub">Aktiv və əlçatan</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Offline</div>
+          <div id="statOffline" class="stat-value mono" style="color:var(--danger);">0</div>
+          <div class="stat-sub">Diqqət tələb edən hədəflər</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Orta Cavab Müddəti</div>
+          <div id="statLatency" class="stat-value mono" style="color:var(--accent);">0 ms</div>
+          <div class="stat-sub" id="lastSyncText">Sinxronlaşdırılır...</div>
+        </div>
+      </section>
+
+      <section class="toolbar">
+        <div class="toolbar-left">
+          <input id="searchInput" class="search-box" type="text" placeholder="Ad və ya IP/domain axtar..." oninput="renderFiltered()" />
+          <select id="statusFilter" class="filter-select" onchange="renderFiltered()">
+            <option value="all">Bütün statuslar</option>
+            <option value="online">Online</option>
+            <option value="offline">Offline</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="openAddDeviceModal()">+ Yeni hədəf əlavə et</button>
+      </section>
+
+      <section class="panel">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ad</th>
+                <th>Hədəf (IP / Host)</th>
+                <th>Növ</th>
+                <th>Status</th>
+                <th>Latency</th>
+                <th>SSL</th>
+                <th>Son yoxlama</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody id="devicesTbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="deviceModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="deviceModalTitle" class="modal-title">Yeni hədəf</h2>
+        <button class="btn btn-sm" onclick="closeModal('deviceModal')">✕</button>
+      </div>
+      <form id="deviceForm">
+        <input type="hidden" id="deviceId" />
+        <div class="form-group">
+          <label for="devName">Cihaz / Servis adı</label>
+          <input id="devName" type="text" required placeholder="Məs: Core Firewall / Web API" />
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="devTarget">IP və ya Domain</label>
+            <input id="devTarget" type="text" required placeholder="10.0.0.1 və ya example.com" />
+          </div>
+          <div class="form-group">
+            <label for="devType">Yoxlama növü</label>
+            <select id="devType" onchange="onTypeChange()">
+              <option value="tcp_port">TCP Port</option>
+              <option value="icmp_ping">ICMP Ping</option>
+              <option value="http_ssl">HTTP + SSL</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group" id="portGroup">
+            <label for="devPort">Port (1-65535)</label>
+            <input id="devPort" type="number" min="1" max="65535" placeholder="443" />
+          </div>
+          <div class="form-group">
+            <label for="devInterval">İnterval (san)</label>
+            <input id="devInterval" type="number" min="10" max="3600" value="30" />
+          </div>
+        </div>
+        <div class="form-group" id="httpUrlGroup" style="display:none;">
+          <label for="devHttpUrl">HTTP/HTTPS URL (opsional)</label>
+          <input id="devHttpUrl" type="text" placeholder="https://example.com/health" />
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+          <button type="button" class="btn" onclick="closeModal('deviceModal')">Ləğv et</button>
+          <button type="submit" class="btn btn-primary">Yadda saxla</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="logsModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="logsModalTitle" class="modal-title">Yoxlama tarixçəsi</h2>
+        <button class="btn btn-sm" onclick="closeModal('logsModal')">✕</button>
+      </div>
+      <div id="logsList"></div>
+    </div>
+  </div>
+
+  <div id="passwordModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Admin şifrəsini dəyiş</h2>
+        <button class="btn btn-sm" onclick="closeModal('passwordModal')">✕</button>
+      </div>
+      <form id="passwordForm">
+        <div class="form-group">
+          <label for="currPass">Cari şifrə</label>
+          <input id="currPass" type="password" required />
+        </div>
+        <div class="form-group">
+          <label for="newPass">Yeni şifrə (min. 6 simvol)</label>
+          <input id="newPass" type="password" minlength="6" required />
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+          <button type="button" class="btn" onclick="closeModal('passwordModal')">Ləğv et</button>
+          <button type="submit" class="btn btn-primary">Yenilə</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API = "/api";
+    let allDevices = [];
+
+    function getToken() { return localStorage.getItem("netpulse_token"); }
+    function setToken(t) { localStorage.setItem("netpulse_token", t); }
+    function clearToken() { localStorage.removeItem("netpulse_token"); }
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 3200);
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("netpulse_theme", next);
+    }
+
+    (function initTheme() {
+      const saved = localStorage.getItem("netpulse_theme");
+      if (saved) document.documentElement.setAttribute("data-theme", saved);
+    })();
+
+    async function apiFetch(path, options = {}) {
+      const headers = Object.assign({}, options.headers || {});
+      const token = getToken();
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      if (!(options.body instanceof FormData) && !headers["Content-Type"] && options.body) {
+        headers["Content-Type"] = "application/json";
+      }
+      const res = await fetch(`${API}${path}`, Object.assign({}, options, { headers }));
+      if (res.status === 401) {
+        logout();
+        throw new Error("Sessiya bitdi");
+      }
+      return res;
+    }
+
+    function showApp() {
+      document.getElementById("loginView").style.display = "none";
+      document.getElementById("appView").style.display = "block";
+      loadDevices();
+    }
+
+    function logout() {
+      clearToken();
+      document.getElementById("appView").style.display = "none";
+      document.getElementById("loginView").style.display = "flex";
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      document.getElementById("loginError").textContent = "";
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          document.getElementById("loginError").textContent = data.detail || "Giriş uğursuz oldu";
+          return;
+        }
+        setToken(data.access_token);
+        showApp();
+      } catch (_) {
+        document.getElementById("loginError").textContent = "Serverə qoşulmaq mümkün olmadı";
+      }
+    });
+
+    async function loadDevices() {
+      try {
+        const res = await apiFetch("/devices");
+        if (!res.ok) return;
+        const data = await res.json();
+        allDevices = data.devices || [];
+        document.getElementById("statTotal").textContent = data.summary.total;
+        document.getElementById("statOnline").textContent = data.summary.online;
+        document.getElementById("statOffline").textContent = data.summary.offline;
+        document.getElementById("statLatency").textContent = `${data.summary.avg_latency_ms} ms`;
+        document.getElementById("lastSyncText").textContent = `Yeniləndi: ${new Date().toLocaleTimeString()}`;
+        renderFiltered();
+      } catch (_) {}
+    }
+
+    function renderFiltered() {
+      const q = document.getElementById("searchInput").value.toLowerCase().trim();
+      const st = document.getElementById("statusFilter").value;
+      const filtered = allDevices.filter((d) => {
+        const matchText = !q || d.name.toLowerCase().includes(q) || d.target.toLowerCase().includes(q);
+        const matchStatus = st === "all" || d.status === st;
+        return matchText && matchStatus;
+      });
+      const tbody = document.getElementById("devicesTbody");
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:28px;">Heç bir hədəf tapılmadı</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = filtered.map((d) => {
+        const pillClass = d.status === "online" ? "pill-online" : d.status === "offline" ? "pill-offline" : "pill-unknown";
+        const typeLabel = d.check_type === "tcp_port" ? `TCP:${d.port || ""}` : d.check_type === "http_ssl" ? "HTTP+SSL" : "ICMP";
+        const sslText = d.ssl_days_left !== null && d.ssl_days_left !== undefined ? `${d.ssl_days_left} gün` : "—";
+        const latencyText = d.latency_ms !== null && d.latency_ms !== undefined ? `${d.latency_ms} ms` : "—";
+        return `
+          <tr>
+            <td><strong>${escapeHtml(d.name)}</strong></td>
+            <td class="mono">${escapeHtml(d.target)}</td>
+            <td><span class="type-badge mono">${escapeHtml(typeLabel)}</span></td>
+            <td><span class="pill ${pillClass}"><span class="dot"></span>${escapeHtml(d.status)}</span></td>
+            <td class="mono">${escapeHtml(latencyText)}</td>
+            <td class="mono">${escapeHtml(sslText)}</td>
+            <td class="mono" style="color:var(--text-secondary);font-size:12px;">${escapeHtml(d.last_checked || "—")}</td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn btn-sm" onclick="checkOne(${d.id})">Yoxla</button>
+                <button class="btn btn-sm" onclick="openLogs(${d.id}, '${escapeJs(d.name)}')">Log</button>
+                <button class="btn btn-sm" onclick="editDevice(${d.id})">Düzəlt</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDevice(${d.id})">Sil</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (m) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[m]));
+    }
+
+    function escapeJs(s) {
+      return String(s ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add("open"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+    function onTypeChange() {
+      const t = document.getElementById("devType").value;
+      document.getElementById("portGroup").style.display = t === "icmp_ping" ? "none" : "block";
+      document.getElementById("httpUrlGroup").style.display = t === "http_ssl" ? "block" : "none";
+    }
+
+    function openAddDeviceModal() {
+      document.getElementById("deviceModalTitle").textContent = "Yeni hədəf əlavə et";
+      document.getElementById("deviceForm").reset();
+      document.getElementById("deviceId").value = "";
+      document.getElementById("devInterval").value = 30;
+      onTypeChange();
+      openModal("deviceModal");
+    }
+
+    function editDevice(id) {
+      const d = allDevices.find((x) => x.id === id);
+      if (!d) return;
+      document.getElementById("deviceModalTitle").textContent = "Hədəfi redaktə et";
+      document.getElementById("deviceId").value = d.id;
+      document.getElementById("devName").value = d.name;
+      document.getElementById("devTarget").value = d.target;
+      document.getElementById("devType").value = d.check_type;
+      document.getElementById("devPort").value = d.port || "";
+      document.getElementById("devInterval").value = d.interval_sec || 30;
+      document.getElementById("devHttpUrl").value = d.http_url || "";
+      onTypeChange();
+      openModal("deviceModal");
+    }
+
+    document.getElementById("deviceForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("deviceId").value;
+      const portVal = document.getElementById("devPort").value;
+      const payload = {
+        name: document.getElementById("devName").value.trim(),
+        target: document.getElementById("devTarget").value.trim(),
+        check_type: document.getElementById("devType").value,
+        port: portVal ? parseInt(portVal, 10) : null,
+        http_url: document.getElementById("devHttpUrl").value.trim() || null,
+        interval_sec: parseInt(document.getElementById("devInterval").value || "30", 10),
+      };
+      const res = id
+        ? await apiFetch(`/devices/${id}`, { method: "PUT", body: JSON.stringify(payload) })
+        : await apiFetch("/devices", { method: "POST", body: JSON.stringify(payload) });
+      if (res.ok) {
+        closeModal("deviceModal");
+        showToast(id ? "Hədəf yeniləndi" : "Yeni hədəf əlavə edildi");
+        loadDevices();
+      } else {
+        const err = await res.json();
+        showToast(err.detail || "Xəta baş verdi");
+      }
+    });
+
+    async function deleteDevice(id) {
+      if (!confirm("Bu hədəfi silmək istədiyinizə əminsiniz?")) return;
+      const res = await apiFetch(`/devices/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("Hədəf silindi");
+        loadDevices();
+      }
+    }
+
+    async function checkOne(id) {
+      showToast("Yoxlanılır...");
+      const res = await apiFetch(`/devices/${id}/check`, { method: "POST" });
+      if (res.ok) {
+        const out = await res.json();
+        showToast(`${out.status.toUpperCase()} — ${out.detail}`);
+        loadDevices();
+      }
+    }
+
+    async function checkAllDevices() {
+      showToast("Bütün hədəflər yoxlanılır...");
+      const res = await apiFetch("/devices/check-all", { method: "POST" });
+      if (res.ok) {
+        const out = await res.json();
+        showToast(`${out.checked_count} hədəf yoxlanıldı`);
+        loadDevices();
+      }
+    }
+
+    async function openLogs(id, name) {
+      document.getElementById("logsModalTitle").textContent = `Loglar — ${name}`;
+      document.getElementById("logsList").innerHTML = "Yüklənir...";
+      openModal("logsModal");
+      const res = await apiFetch(`/devices/${id}/logs`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const logs = data.logs || [];
+      if (!logs.length) {
+        document.getElementById("logsList").innerHTML = "<p style='color:var(--text-muted)'>Hələ log qeydi yoxdur.</p>";
+        return;
+      }
+      document.getElementById("logsList").innerHTML = logs.map((l) => `
+        <div class="log-item">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <strong style="color:${l.status === 'online' ? 'var(--success)' : 'var(--danger)'}">${l.status.toUpperCase()}</strong>
+            <span class="mono" style="color:var(--text-secondary)">${escapeHtml(l.checked_at)}</span>
+          </div>
+          <div class="mono">${escapeHtml(l.detail || "")}</div>
+        </div>
+      `).join("");
+    }
+
+    function openPasswordModal() {
+      document.getElementById("passwordForm").reset();
+      openModal("passwordModal");
+    }
+
+    document.getElementById("passwordForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const res = await apiFetch("/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          current_password: document.getElementById("currPass").value,
+          new_password: document.getElementById("newPass").value,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        closeModal("passwordModal");
+        showToast(data.message || "Şifrə yeniləndi");
+      } else {
+        showToast(data.detail || "Şifrə dəyişdirilə bilmədi");
+      }
+    });
+
+    async function exportXlsx() {
+      const res = await apiFetch("/export/xlsx");
+      if (!res.ok) { showToast("Export xətası"); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "netpulse-report.xlsx";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("XLSX hesabat yükləndi");
+    }
+
+    async function importXlsx(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await apiFetch("/import/xlsx", { method: "POST", body: fd });
+      const data = await res.json();
+      event.target.value = "";
+      if (res.ok) {
+        showToast(data.message || "İdxal tamamlandı");
+        loadDevices();
+      } else {
+        showToast(data.detail || "İdxal xətası");
+      }
+    }
+
+    if (getToken()) { showApp(); }
+    setInterval(() => { if (getToken()) loadDevices(); }, 20000);
+  </script>
+</body>
+</html>
